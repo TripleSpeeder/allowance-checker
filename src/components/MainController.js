@@ -1,8 +1,10 @@
-import React, { useState } from "react";
+import React, {useEffect, useState} from 'react'
+import Web3 from 'web3'
+import erc20ABI from 'human-standard-token-abi'
+import contract from '@truffle/contract'
 import Grid from '@material-ui/core/Grid'
 import ContractSelector from './ContractSelector'
 import AddressForm from './AddressForm'
-import Divider from '@material-ui/core/Divider'
 
 const availableContracts = [
     {
@@ -30,11 +32,54 @@ function MainController(props) {
     const [contractIndex, setContractIndex] = React.useState(0);
     const [address, setAddress] = useState("")
     const [addressValid, setAddressValid] = useState(false)
+    const [web3, setWeb3] = useState(undefined)
+    const [contractInstance, setContractInstance] = useState(undefined)
+
+    const [balance, setBalance] = useState(undefined)
+
+    // initialize web3. TODO: Need to clarify what are correct dependencies to
+    // reinstate web3 in case window.ethereum changes.
+    useEffect(()=>{
+        // use web3 provider from metamask
+        console.log('Getting web3 via: ')
+        console.log(window.ethereum)
+        // don't reload page on network change...
+        // window.ethereum.autoRefreshOnNetworkChange = false;
+        setWeb3(new Web3(window.ethereum));
+    }, [])
+
+    // initialize contract instance
+    useEffect(()=>{
+        const initContract = async () => {
+            const ERC20Contract = contract({abi: erc20ABI})
+            ERC20Contract.setProvider(web3.currentProvider)
+            let instance = await ERC20Contract.at(availableContracts[contractIndex].address)
+            setContractInstance(instance)
+        }
+        if (web3) {
+            console.log('Instantiating contract instance for ' + contractIndex)
+            initContract()
+        }
+    }, [contractIndex, web3])
+
+    // get current address' balance of selected token
+    useEffect(()=>{
+        const updateBalance = async() => {
+            console.log(`Updating ${availableContracts[contractIndex].name} balance for ${address}`)
+            let balance = await contractInstance.balanceOf(address)
+            setBalance(balance)
+        }
+        if (addressValid) {
+            updateBalance()
+        } else {
+            console.log('Clearing balance')
+            setBalance(undefined)
+        }
+    }, [address, addressValid, contractInstance])
 
     const handleContractChange = event => {
         setContractIndex(event.target.value)
     }
-
     const handleAddressChange = (event) => {
         const input = event.target.value
         // check for valid input (raw address and ENS name)
@@ -72,7 +117,7 @@ function MainController(props) {
                 />
             </Grid>
             <Grid item xs={12}>
-                  Content here!
+                  Current balance: {balance ? balance.toString() : 'none'}
             </Grid>
         </Grid>
     )
