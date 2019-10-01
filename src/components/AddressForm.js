@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import PropTypes from 'prop-types'
 import {TextField} from '@material-ui/core'
 import {makeStyles} from '@material-ui/styles'
 
@@ -30,5 +31,12 @@ function AddressForm(props) {
         </form>
     )
 }
+
+AddressForm.propTypes = {
+    handleChange:PropTypes.func.isRequired,
+    value: PropTypes.string.isRequired,
+    valid: PropTypes.bool.isRequired,
+}
+
 
 export default AddressForm
