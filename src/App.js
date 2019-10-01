@@ -1,12 +1,14 @@
 import React from 'react';
-import CssBaseline from '@material-ui/core/CssBaseline'
+import NavBar from './components/NavBar'
+import {AddressForm} from './components/AddressForm'
+import Container from '@material-ui/core/Container'
 
 function App() {
   return (
-      <React.Fragment>
-        <CssBaseline />
-        <header>Yolo!</header>
-      </React.Fragment>
+      <Container>
+        <NavBar/>
+        <AddressForm/>
+      </Container>
   );
 }
 
