@@ -5,6 +5,7 @@ import contract from '@truffle/contract'
 import Grid from '@material-ui/core/Grid'
 import ContractSelector from './ContractSelector'
 import AddressForm from './AddressForm'
+import TokenBalance from './TokenBalance'
 
 const availableContracts = [
     {
@@ -35,8 +36,6 @@ function MainController(props) {
     const [web3, setWeb3] = useState(undefined)
     const [contractInstance, setContractInstance] = useState(undefined)
 
-    const [balance, setBalance] = useState(undefined)
-
     // initialize web3. TODO: Need to clarify what are correct dependencies to
     // reinstate web3 in case window.ethereum changes.
     useEffect(()=>{
@@ -61,21 +60,6 @@ function MainController(props) {
             initContract()
         }
     }, [contractIndex, web3])
-
-    // get current address' balance of selected token
-    useEffect(()=>{
-        const updateBalance = async() => {
-            console.log(`Updating ${availableContracts[contractIndex].name} balance for ${address}`)
-            let balance = await contractInstance.balanceOf(address)
-            setBalance(balance)
-        }
-        if (addressValid) {
-            updateBalance()
-        } else {
-            console.log('Clearing balance')
-            setBalance(undefined)
-        }
-    }, [address, addressValid, contractInstance])
 
     const handleContractChange = event => {
         setContractIndex(event.target.value)
@@ -117,8 +101,14 @@ function MainController(props) {
                 />
             </Grid>
             <Grid item xs={12}>
-                  Current balance: {balance ? balance.toString() : 'none'}
-            </Grid>
+                Current balance:
+                {addressValid ? (
+                    <TokenBalance
+                        contractInstance={contractInstance}
+                        address={address}
+                    />
+                ) : 'none'}
+             </Grid>
         </Grid>
     )
 }
